@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
@@ -10,9 +9,10 @@ import studentRoutes from './routes/studentRoute.js';
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
 dotenv.config();
 app.use(express.json());
+app.use("/api/students", studentRoutes);
+
 mongoose.connect(process.env.MONGO_URL).then(() => {
     console.log('MongoDB connected');
     app.listen(process.env.PORT, () => {
@@ -21,4 +21,3 @@ mongoose.connect(process.env.MONGO_URL).then(() => {
 }).catch((err) => {
     console.error('MongoDB connection error:', err);
 });
-app.use("/api/students", studentRoutes);
