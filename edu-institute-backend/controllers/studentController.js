@@ -50,7 +50,37 @@ export const registerStudent = async (req, res) => {
     }
   };
 
+// Login a student
+export const loginStudent = async (req, res) => {
+    try {
+      const { email, password } = req.body;
   
+      // Find the student by email
+      const student = await Student.findOne({ email });
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+  
+      // Check if the password is correct
+      const isMatch = await bycrypt.compare(password, student.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid credentials' });
+      }
+  
+      // Generate a JWT token
+      const token = jwt.sign({ id: student._id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+  
+      res.status(200).json({ student, token });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };
+
+
+
+
 // Get all students
 export const getAllStudents = async (req, res) => {
     try {
