@@ -1,16 +1,56 @@
 import Student from '../models/student.js';
+import bycrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-// Add a new student
-export const createStudent = async (req, res) => {
+// // Add a new student
+// export const createStudent = async (req, res) => {
+//     try {
+//       const newStudent = new Student(req.body);
+//       const savedStudent = await newStudent.save();
+//       res.status(201).json(savedStudent);
+//     } catch (err) {
+//       res.status(400).json({ error: err.message });
+//     }
+//   };
+
+
+//register a new student
+export const registerStudent = async (req, res) => {
     try {
-      const newStudent = new Student(req.body);
+      const { name, age, email, password } = req.body;
+  
+      // Check if the student already exists
+      const existingStudent = await Student.findOne({ email });
+      if (existingStudent) {
+        return res.status(400).json({ message: 'Student already exists' });
+      }
+  
+      // Hash the password
+      const hashedPassword = await bycrypt.hash(password, 10);
+  
+      // Create a new student
+      const newStudent = new Student({
+        name,
+        age,
+        email,
+        password: hashedPassword,
+      });
+  
+      // Save the student to the database
       const savedStudent = await newStudent.save();
-      res.status(201).json(savedStudent);
+  
+      // Generate a JWT token
+      const token = jwt.sign({ id: savedStudent._id }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+  
+      res.status(201).json({ student: savedStudent, token });
     } catch (err) {
-      res.status(400).json({ error: err.message });
+      res.status(500).json({ error: err.message });
     }
   };
 
+  
 // Get all students
 export const getAllStudents = async (req, res) => {
     try {
